@@ -1,0 +1,51 @@
+# Stack completa para rodar LOCAL, incluindo Postgres 17.10.
+# docker compose -f docker-compose.local.yml up --build
+# FE: http://localhost:8084 | API: http://localhost:8085 | PG: localhost:5433
+
+services:
+  db:
+    image: postgres:17.10-alpine
+    container_name: fechou-brick-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fechou
+      POSTGRES_PASSWORD: fechou
+      POSTGRES_DB: fechou_brick
+    ports:
+      - "5433:5432"
+    volumes:
+      - fechou_brick_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fechou -d fechou_brick"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    container_name: fechou-brick-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://fechou:fechou@db:5432/fechou_brick?sslmode=disable
+      JWT_SECRET: dev-secret-nao-usar-em-producao
+      ADMIN_USERNAME: admin
+      ADMIN_INITIAL_PASSWORD: admin123
+      PORT: "8085"
+      MAX_UPLOAD_MB: "10"
+    ports:
+      - "8085:8085"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  fe:
+    build: ./fe
+    container_name: fechou-brick-fe
+    restart: unless-stopped
+    ports:
+      - "8084:80"
+    depends_on:
+      - api
+
+volumes:
+  fechou_brick_pgdata:

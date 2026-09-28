@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Nunito', ui-rounded, system-ui, sans-serif;
+
+  /* Paleta extraída do logo */
+  --color-brick: #F05A28;
+  --color-brick-dark: #D9481C;
+  --color-brick-soft: #FDE8DF;
+  --color-navy: #1F5673;
+  --color-navy-dark: #17415A;
+  --color-amber: #F5A623;
+  --color-cream: #FAF6F1;
+  --color-wa: #25D366;
+  --color-wa-dark: #1DA851;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cream text-navy font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Esconde a scrollbar dos carrosséis sem desabilitar o scroll */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,0 +1,38 @@
+# Deploy na VPS — banco de dados EXTERNO (já instalado na VPS).
+# 1. cp .env.example .env  e preencha DATABASE_URL, JWT_SECRET, ADMIN_INITIAL_PASSWORD
+# 2. Crie o database no Postgres da VPS:  CREATE DATABASE fechou_brick;
+# 3. docker compose up -d --build
+#
+# Para rodar tudo local (com Postgres em container): docker-compose.local.yml
+
+services:
+  api:
+    build: ./api
+    container_name: fechou-brick-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD}
+      PORT: "8085"
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
+    # Permite usar host.docker.internal no DATABASE_URL quando o Postgres
+    # roda direto no host da VPS (fora de container)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    expose:
+      - "8085"
+    # Descomente para o padrão Caddy de dois handles (handle /api/* -> localhost:8085).
+    # Com o padrão recomendado (um handle só), o nginx do FE já proxia /api internamente.
+    # ports:
+    #   - "8085:8085"
+
+  fe:
+    build: ./fe
+    container_name: fechou-brick-fe
+    restart: unless-stopped
+    ports:
+      - "${FE_PORT:-8084}:80"
+    depends_on:
+      - api
